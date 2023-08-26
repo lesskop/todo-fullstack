@@ -14,18 +14,18 @@ const AddTask: React.FC = () => {
   const randomPlaceholderTask: string = exampleTasks[randomIndex];
 
   return (
-    <div className="w-full px-10 py-10 mx-auto text-center">
+    <div className="w-full max-w-screen-md px-10 pt-10 pb-4 mx-auto text-center">
       <h2 className="text-2xl font-bold pb-5 dark:text-white">Add New Task!</h2>
       <div className="flex justify-center gap-2">
         <input
           type="text"
           placeholder={randomPlaceholderTask}
           className="p-2 outline-none border-gray-900 border-2 rounded-md 
-          w-full max-w-2xl font-semibold text-lg"
+          w-full font-semibold text-lg shadow-md"
         />
         <button
           className="py-2 px-4 font-bold text-lg rounded-md whitespace-nowrap
-        bg-gray-900 dark:bg-gray-700 text-white
+        bg-gray-900 dark:bg-gray-700 text-white shadow-md
         hover:bg-gray-700 dark:hover:bg-gray-500"
         >
           Add Task
