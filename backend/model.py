@@ -1,14 +1,20 @@
-from typing import Optional
 from datetime import datetime
+from typing import Optional
+from uuid import UUID
 
 from pydantic import BaseModel
 
 
-class CreateTodoItem(BaseModel):
+class TodoCreate(BaseModel):
     title: str
-    description: Optional[str] = None
+    description: Optional[str]
 
 
-class TodoItem(CreateTodoItem):
+class Todo(TodoCreate):
+    id: UUID | str
     created_at: datetime
+    completed: bool = False
+
+
+class TodoUpdate(TodoCreate):
     completed: bool = False

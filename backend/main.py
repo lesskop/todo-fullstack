@@ -1,64 +1,55 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from typing import List
 
-from model import CreateTodoItem, TodoItem
+from model import Todo, TodoCreate, TodoUpdate
 import database
 
 app = FastAPI(title='Todo')
 
-origins = ['https://localhost:3000']
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=['*'],
     allow_headers=['*'],
 )
 
 
-@app.get('/api/todo')
-async def get_all_todos():
-    response = await database.get_all_todos()
-    return response
+@app.post("/todo/", response_model=Todo)
+async def create_todo(todo: TodoCreate):
+    created_todo = await database.create_todo(todo)
+    return created_todo
 
 
-@app.get('/api/todo/{title}', response_model=TodoItem)
-async def get_todo(title: str):
-    response = await database.get_todo(title)
-    if response:
-        return response
-    raise HTTPException(404, f'Todo item with title="{title}" does not exist')
+@app.get("/todo/", response_model=List[Todo])
+async def get_todos():
+    todos = await database.get_todos()
+    if todos is None:
+        raise HTTPException(status_code=404, detail="Todos not found")
+    return todos
 
 
-@app.post('/api/todo', response_model=TodoItem)
-async def create_todo(todo: CreateTodoItem):
-    response = await database.create_todo(dict(todo))
-
-    if response:
-        return response
-    raise HTTPException(400, 'Something went wrong')
-
-
-@app.put('/api/todo/{title}', response_model=TodoItem)
-async def update_todo(title: str, description: str):
-    response = await database.update_todo(title, description)
-    if response:
-        return response
-    raise HTTPException(404, f'Todo item with title="{title}" does not exist')
+@app.get("/todo/{id}", response_model=Todo)
+async def get_todo(id: str):
+    todo = await database.get_todo(id)
+    if todo is None:
+        raise HTTPException(status_code=404, detail="Todo not found")
+    return todo
 
 
-@app.delete('/api/todos/{title}')
-async def delete_todo(title: str):
-    response = await database.delete_todo(title)
-    if response:
-        return f"Todo item with title='{title}' was deleted"
-    raise HTTPException(404, f'Todo item with title="{title}" does not exist')
+@app.put("/todo/{id}", response_model=Todo)
+async def update_todo(id: str, todo: TodoUpdate):
+    await database.update_todo(id, todo)
+    updated_todo = await database.get_todo(id)
+    if updated_todo is None:
+        raise HTTPException(status_code=404, detail="Todo not found")
+    return updated_todo
 
 
-@app.put('/api/todo/{title}/complete', response_model=TodoItem)
-async def complete_todo(title: str):
-    response = await database.complete_todo(title)
-    if response:
-        return response
-    raise HTTPException(404, f'Todo item with title="{title}" does not exist')
+@app.delete("/todo/{id}", response_model=str)
+async def delete_todo(id: str):
+    todo = await database.delete_todo(id)
+    if todo.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Todo not found")
+    return "Todo was deleted"

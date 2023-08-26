@@ -1,10 +1,11 @@
 from datetime import datetime
+from uuid import uuid4
 import os
 
 from dotenv import load_dotenv
 import motor.motor_asyncio
 
-from model import CreateTodoItem, TodoItem
+from model import Todo, TodoCreate, TodoUpdate
 
 load_dotenv()
 
@@ -18,52 +19,38 @@ database = client[DATABASE_NAME]
 collection = database[COLLECTION_NAME]
 
 
-async def get_all_todos():
+async def create_todo(todo: TodoCreate):
+    todo = dict(todo)
+    todo["id"] = str(uuid4())
+    todo["created_at"] = datetime.utcnow()
+    todo["completed"] = False
+
+    result = await collection.insert_one(todo)
+    created_todo = await collection.find_one({"_id": result.inserted_id})
+    return created_todo
+
+
+async def get_todos():
     cursor = collection.find({})
-    todos = [TodoItem(**document) async for document in cursor]
+    todos = [Todo(**document) async for document in cursor]
     return todos
 
 
-async def get_todo(title: str):
-    document = await collection.find_one({'title': title})
-    return document
+async def get_todo(id: str):
+    todo = await collection.find_one({"id": id})
+    return todo
 
 
-async def create_todo(todo: CreateTodoItem):
-    todo_dict = dict(todo)
-    todo_dict["created_at"] = datetime.utcnow()
-    todo_dict["completed"] = False
-
-    result = await collection.insert_one(todo_dict)
-    created_todo = await collection.find_one({'_id': result.inserted_id})
-    return TodoItem(**created_todo)
-
-
-async def update_todo(title: str, description: str):
-    update_query = {
-        '$set': {
-            'description': description,
-        }
-    }
-
-    await collection.update_one({"title": title}, update_query)
-    updated_todo = await collection.find_one({'title': title})
-    if updated_todo:
-        return TodoItem(**updated_todo)
+async def update_todo(id: str, todo: TodoUpdate):
+    todo = dict(todo)
+    await collection.update_one(
+        {"id": id},
+        {"$set": todo}
+    )
+    updated_todo = await collection.find_one({"id": id})
+    return updated_todo
 
 
-async def delete_todo(title: str):
-    await collection.delete_one({'title': title})
-    return True
-
-
-async def complete_todo(title: str):
-    update_query = {
-        '$set': {
-            'completed': True,
-        }
-    }
-
-    await collection.update_one({"title": title}, update_query)
-    document = await collection.find_one({'title': title})
-    return TodoItem(**document) if document else None
+async def delete_todo(id: str):
+    result = await collection.delete_one({"id": id})
+    return result
