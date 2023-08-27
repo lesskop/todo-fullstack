@@ -1,17 +1,17 @@
 import TaskItem from "./TaskItem";
 
-const TaskList: React.FC = () => {
-  const titles = [
-    "Lorem ipsum dolor sit.",
-    "Iure temporibus aspernatur quas!",
-    "Lorem, ipsum dolor sit amet consectetur adipisicing elit. Laudantium cumque consequuntur quisquam aut? Dicta, maiores.",
-    "Ipsa, vero totam? Dignissimos, fuga enim ex maiores eius officia laudantium laborum perferendis soluta eaque!",
-  ];
+import { Task } from "../shared/types";
 
+interface TaskListProps {
+  taskList: Task[];
+  setTaskList: React.Dispatch<React.SetStateAction<Task[]>>;
+}
+
+const TaskList: React.FC<TaskListProps> = ({ taskList, setTaskList }) => {
   return (
     <div className="w-full px-10 pb-10 max-w-screen-md mx-auto flex flex-col">
-      {titles.map((title, index) => (
-        <TaskItem key={index} title={title} />
+      {taskList.map((task: Task) => (
+        <TaskItem key={task.id} task={task} setTaskList={setTaskList} />
       ))}
     </div>
   );

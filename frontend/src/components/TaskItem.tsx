@@ -1,20 +1,45 @@
 import React, { useState, useRef, useEffect } from "react";
+
 import { IoMdTrash } from "react-icons/io";
 import { MdEdit, MdDone, MdClose } from "react-icons/md";
+import { Task } from "../shared/types";
+import { deleteTaskFromDB, updateTaskInDB } from "../shared/apiService";
 
 interface TaskItemProps {
-  title: string;
+  task: Task;
+  setTaskList: React.Dispatch<React.SetStateAction<Task[]>>;
 }
 
-const TaskItem: React.FC<TaskItemProps> = ({ title }) => {
+const TaskItem: React.FC<TaskItemProps> = ({ task, setTaskList }) => {
   const [editable, setEditable] = useState<boolean>(false);
-  const [currentTitle, setCurrentTitle] = useState<string>(title);
-  const [originalTitle, setOriginalTitle] = useState<string>(title);
+  const [currentTitle, setCurrentTitle] = useState<string>(task.title);
+  const [originalTitle, setOriginalTitle] = useState<string>(task.title);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const handleDelete = async () => {
+    await deleteTaskFromDB(task.id);
+    setTaskList((prevTaskList) =>
+      prevTaskList.filter((item) => item.id !== task.id)
+    );
+  };
+
   const handleConfirmEdit = () => {
+    if (currentTitle === originalTitle) {
+      setEditable(!editable);
+      return;
+    }
+
     setOriginalTitle(currentTitle);
-    setEditable(!editable);
+
+    updateTaskInDB(task.id, currentTitle);
+
+    setTaskList((prevTaskList) =>
+      prevTaskList.map((item) =>
+        item.id === task.id ? { ...item, title: currentTitle } : item
+      )
+    );
+
+    setEditable(false);
   };
 
   const handleCancelEdit = () => {
@@ -70,7 +95,10 @@ const TaskItem: React.FC<TaskItemProps> = ({ title }) => {
               <MdEdit color="white" size={24} />
             </button>
           )}
-          <button className="hover:scale-125 transition duration-300">
+          <button
+            className="hover:scale-125 transition duration-300"
+            onClick={handleDelete}
+          >
             <IoMdTrash color="white" size={24} />
           </button>
         </div>

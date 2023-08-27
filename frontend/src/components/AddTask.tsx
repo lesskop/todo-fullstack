@@ -1,17 +1,27 @@
-const exampleTasks: Array<string> = [
-  "Buy groceries",
-  "Walk the dog",
-  "Write a blog post",
-  "Go to the gym",
-  "Run 2 kilometers",
-  "Walk in the park",
-  "Learn React",
-  "Cook dinner",
-];
+import { Task } from "../shared/types";
+import { randomPlaceholderTask } from "../shared/exampleTasks";
+import { addTaskToDB } from "../shared/apiService";
 
-const AddTask: React.FC = () => {
-  const randomIndex: number = Math.floor(Math.random() * exampleTasks.length);
-  const randomPlaceholderTask: string = exampleTasks[randomIndex];
+interface AddTaskProps {
+  currentTitle: string;
+  setCurrentTitle: React.Dispatch<React.SetStateAction<string>>;
+  setTaskList: React.Dispatch<React.SetStateAction<Task[]>>;
+}
+
+const AddTask: React.FC<AddTaskProps> = ({
+  currentTitle,
+  setCurrentTitle,
+  setTaskList,
+}) => {
+  const handleAddTask = async () => {
+    if (currentTitle.trim() === "") {
+      return;
+    }
+
+    const addedTask = await addTaskToDB(currentTitle);
+    setTaskList((prevTaskList) => [...prevTaskList, addedTask]);
+    setCurrentTitle("");
+  };
 
   return (
     <div className="w-full max-w-screen-md px-10 pt-10 pb-4 mx-auto text-center">
@@ -20,10 +30,13 @@ const AddTask: React.FC = () => {
         <input
           type="text"
           placeholder={randomPlaceholderTask}
+          value={currentTitle}
+          onChange={(e) => setCurrentTitle(e.target.value)}
           className="p-2 outline-none border-gray-900 border-2 rounded-md 
           w-full font-semibold text-lg shadow-md"
         />
         <button
+          onClick={handleAddTask}
           className="py-2 px-4 font-bold text-lg rounded-md whitespace-nowrap
         bg-gray-900 dark:bg-gray-700 text-white shadow-md
         hover:bg-gray-700 dark:hover:bg-gray-500"
