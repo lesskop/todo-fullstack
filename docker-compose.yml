@@ -2,18 +2,22 @@ version: "3"
 
 services:
   todo-mongo:
-    image: todo-mongo
+    image: mongo
     ports:
       - "27017:27017"
 
   todo-backend:
-    image: todo-backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
     ports:
       - "8000:8000"
     depends_on:
       - todo-mongo
 
   todo-frontend:
-    image: todo-frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
     ports:
       - "5173:5173"
