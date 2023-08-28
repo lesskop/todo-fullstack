@@ -1,0 +1,19 @@
+version: "3"
+
+services:
+  todo-mongo:
+    image: todo-mongo
+    ports:
+      - "27017:27017"
+
+  todo-backend:
+    image: todo-backend
+    ports:
+      - "8000:8000"
+    depends_on:
+      - todo-mongo
+
+  todo-frontend:
+    image: todo-frontend
+    ports:
+      - "5173:5173"
