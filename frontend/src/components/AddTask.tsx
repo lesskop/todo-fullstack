@@ -1,3 +1,5 @@
+import { useRef } from "react";
+
 import { Task } from "../shared/types";
 import { randomPlaceholderTask } from "../shared/exampleTasks";
 import { addTaskToDB } from "../shared/apiService";
@@ -13,6 +15,8 @@ const AddTask: React.FC<AddTaskProps> = ({
   setCurrentTitle,
   setTaskList,
 }) => {
+  const inputRef = useRef<HTMLInputElement | null>(null);
+
   const handleAddTask = async () => {
     if (currentTitle.trim() === "") {
       return;
@@ -21,7 +25,17 @@ const AddTask: React.FC<AddTaskProps> = ({
     const addedTask = await addTaskToDB(currentTitle);
     setTaskList((prevTaskList) => [...prevTaskList, addedTask]);
     setCurrentTitle("");
+
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
   };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key == 'Enter') {
+      handleAddTask();
+    }
+  } 
 
   return (
     <div className="w-full max-w-screen-md px-10 pt-10 pb-4 mx-auto text-center">
@@ -29,11 +43,14 @@ const AddTask: React.FC<AddTaskProps> = ({
       <div className="flex justify-center gap-2">
         <input
           type="text"
+          ref={inputRef}
           placeholder={randomPlaceholderTask}
           value={currentTitle}
           onChange={(e) => setCurrentTitle(e.target.value)}
           className="p-2 outline-none border-gray-900 border-2 rounded-md 
           w-full font-semibold text-lg shadow-md"
+          autoFocus
+          onKeyDown={handleKeyDown}
         />
         <button
           onClick={handleAddTask}
