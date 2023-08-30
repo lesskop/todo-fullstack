@@ -14,7 +14,7 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, setTaskList }) => {
   const [editable, setEditable] = useState<boolean>(false);
   const [currentTitle, setCurrentTitle] = useState<string>(task.title);
   const [originalTitle, setOriginalTitle] = useState<string>(task.title);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const editInputRef = useRef<HTMLInputElement | null>(null);
 
   const handleDelete = async () => {
     await deleteTaskFromDB(task.id);
@@ -47,9 +47,17 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, setTaskList }) => {
     setEditable(false);
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key == "Enter") {
+      handleConfirmEdit();
+    } else if (e.key == "Escape") {
+      handleCancelEdit();
+    }
+  };
+
   useEffect(() => {
-    if (editable && inputRef.current) {
-      inputRef.current.select();
+    if (editable && editInputRef.current) {
+      editInputRef.current.select();
     }
   }, [editable]);
 
@@ -61,10 +69,11 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, setTaskList }) => {
       >
         {editable ? (
           <input
-            ref={inputRef}
+            ref={editInputRef}
             type="text"
             value={currentTitle}
             onChange={(e) => setCurrentTitle(e.target.value)}
+            onKeyDown={handleKeyDown}
             className="text-xl text-white w-full outline-none
             bg-gray-900 dark:bg-gray-700 caret-white"
           />
